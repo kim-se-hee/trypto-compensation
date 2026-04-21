@@ -35,7 +35,6 @@ class MissedFillDetectorTest {
     @Test
     @DisplayName("BUY 주문: tick 가격 <= 주문가 인 첫 tick 에서 체결된다")
     void buyFillsOnFirstTickAtOrBelowOrderPrice() {
-        // given
         PendingOrder order = buyOrder(bd("100"));
         Instant t1 = Instant.parse("2026-04-21T00:00:01Z");
         Instant t2 = Instant.parse("2026-04-21T00:00:02Z");
@@ -48,10 +47,8 @@ class MissedFillDetectorTest {
             ));
         given(fillExecutor.executeFill(order, bd("99"), t2)).willReturn(true);
 
-        // when
         boolean result = detector.tryCompensate(order);
 
-        // then
         assertThat(result).isTrue();
         verify(fillExecutor, times(1)).executeFill(order, bd("99"), t2);
     }
@@ -59,7 +56,6 @@ class MissedFillDetectorTest {
     @Test
     @DisplayName("BUY 주문: 교차하는 tick 이 없으면 false 반환, executeFill 호출 안 함")
     void buyReturnsFalseWhenNoTickCrosses() {
-        // given
         PendingOrder order = buyOrder(bd("100"));
         given(influxRepo.findTicks(any(), any(), any(), any()))
             .willReturn(List.of(
@@ -67,10 +63,8 @@ class MissedFillDetectorTest {
                 new Tick(Instant.parse("2026-04-21T00:00:02Z"), bd("110"))
             ));
 
-        // when
         boolean result = detector.tryCompensate(order);
 
-        // then
         assertThat(result).isFalse();
         verify(fillExecutor, never()).executeFill(any(), any(), any());
     }
@@ -78,7 +72,6 @@ class MissedFillDetectorTest {
     @Test
     @DisplayName("SELL 주문: tick 가격 >= 주문가 인 첫 tick 에서 체결된다")
     void sellFillsOnFirstTickAtOrAboveOrderPrice() {
-        // given
         PendingOrder order = sellOrder(bd("100"));
         Instant t1 = Instant.parse("2026-04-21T00:00:01Z");
         Instant t2 = Instant.parse("2026-04-21T00:00:02Z");
@@ -89,10 +82,8 @@ class MissedFillDetectorTest {
             ));
         given(fillExecutor.executeFill(order, bd("101"), t2)).willReturn(true);
 
-        // when
         boolean result = detector.tryCompensate(order);
 
-        // then
         assertThat(result).isTrue();
         verify(fillExecutor).executeFill(order, bd("101"), t2);
     }
@@ -100,7 +91,6 @@ class MissedFillDetectorTest {
     @Test
     @DisplayName("첫 매칭 tick 이후 루프를 멈춘다: executeFill 은 한 번만 호출된다")
     void stopsAtFirstMatchingTick() {
-        // given
         PendingOrder order = buyOrder(bd("100"));
         Instant t1 = Instant.parse("2026-04-21T00:00:01Z");
         Instant t2 = Instant.parse("2026-04-21T00:00:02Z");
@@ -111,10 +101,8 @@ class MissedFillDetectorTest {
             ));
         given(fillExecutor.executeFill(order, bd("95"), t1)).willReturn(true);
 
-        // when
         detector.tryCompensate(order);
 
-        // then
         verify(fillExecutor, times(1)).executeFill(any(), any(), any());
         verify(fillExecutor).executeFill(order, bd("95"), t1);
     }

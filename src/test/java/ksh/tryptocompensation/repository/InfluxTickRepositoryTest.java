@@ -26,10 +26,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Testcontainers 로 InfluxDB 2.7 을 띄워서 실행하는 통합 테스트.
- * 컨테이너는 JUnit lifecycle 에 맞춰 자동 시작/종료된다.
- */
 @Testcontainers
 class InfluxTickRepositoryTest {
 
@@ -81,16 +77,13 @@ class InfluxTickRepositoryTest {
     @Test
     @DisplayName("쓴 tick 이 주어진 range 안에서 시간 오름차순으로 조회된다")
     void findTicksReturnsWrittenPointsInTimeOrder() {
-        // given
         Instant base = Instant.now().truncatedTo(ChronoUnit.MILLIS).minus(1, ChronoUnit.HOURS);
         writePoint(exchange, symbol, bd("102.5"), base.plusSeconds(2));
         writePoint(exchange, symbol, bd("100"),   base);
         writePoint(exchange, symbol, bd("101"),   base.plusSeconds(1));
 
-        // when
         List<Tick> ticks = repo.findTicks(exchange, symbol, base.minusSeconds(1), base.plusSeconds(10));
 
-        // then
         assertThat(ticks).hasSize(3);
         assertThat(ticks.get(0).price()).isEqualByComparingTo("100");
         assertThat(ticks.get(1).price()).isEqualByComparingTo("101");
@@ -100,17 +93,14 @@ class InfluxTickRepositoryTest {
     @Test
     @DisplayName("range 밖 tick, 다른 exchange/symbol tick 은 제외된다")
     void filtersByRangeAndTags() {
-        // given
         Instant base = Instant.now().truncatedTo(ChronoUnit.MILLIS).minus(1, ChronoUnit.HOURS);
         writePoint(exchange, symbol, bd("100"), base);
         writePoint(exchange, symbol, bd("200"), base.plusSeconds(100));
         writePoint("other-ex-" + UUID.randomUUID(), symbol, bd("999"), base.plusSeconds(1));
         writePoint(exchange, "OTHER-" + UUID.randomUUID() + "/KRW", bd("888"), base.plusSeconds(1));
 
-        // when
         List<Tick> ticks = repo.findTicks(exchange, symbol, base.minusSeconds(1), base.plusSeconds(10));
 
-        // then
         assertThat(ticks).hasSize(1);
         assertThat(ticks.get(0).price()).isEqualByComparingTo("100");
     }
@@ -118,13 +108,10 @@ class InfluxTickRepositoryTest {
     @Test
     @DisplayName("해당 tag/range 에 tick 이 없으면 빈 리스트를 반환한다")
     void returnsEmptyWhenNoMatchingTicks() {
-        // given
         Instant base = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
-        // when
         List<Tick> ticks = repo.findTicks(exchange, symbol, base.minusSeconds(10), base);
 
-        // then
         assertThat(ticks).isEmpty();
     }
 
