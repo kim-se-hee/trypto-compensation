@@ -1,0 +1,33 @@
+server:
+  port: ${MANAGEMENT_PORT:8083}
+
+spring:
+  application:
+    name: trypto-compensation
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:trypto}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+influxdb:
+  url: ${INFLUXDB_URL:http://localhost:8086}
+  token: ${INFLUXDB_TOKEN:trypto-collector-token}
+  org: ${INFLUXDB_ORG:trypto}
+  bucket: ${INFLUXDB_BUCKET:ticker}
+
+compensation:
+  boundary-seconds: ${COMPENSATION_BOUNDARY_SECONDS:30}
+  interval-ms: ${COMPENSATION_INTERVAL_MS:30000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
